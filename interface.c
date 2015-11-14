@@ -2364,6 +2364,31 @@ void interpreter_chat_mode (char *line) {
     update_prompt ();
     return;
   }
+  if (!strncmp (line, ".", 1)) {
+    int limit = 40;
+    sscanf (line, ". %99d", &limit);
+    if (limit < 0 || limit > 1000) { limit = 40; }
+    tgl_do_get_history (TLS, chat_mode_id, 0, limit, offline_mode, print_msg_list_gw, 0);
+    return;
+  }
+  if (!strncmp (line, ".м", 2)) {
+    int msg_id = 0;
+    sscanf (line, ".м %99d", &msg_id);
+    if (msg_id < 0) { msg_id = 0; }
+    msg_id = 11794;
+    //struct tgl_message *M = tgl_message_get (TLS, msg_id);
+    //tgl_do_load_photo (TLS, M->media.photo, NULL, NULL);
+    //struct arg *mstruct arg **args = tgl_message_get (TLS, msg_id);
+    //struct arg *args = [msg_id];
+    struct arg args[1];// = {msg_id};
+    args[0].flags = msg_id;
+    args[0].P = NULL;
+    args[0].str = NULL;
+    args[0].num = msg_id;
+    do_open_photo (NULL, 1, args, NULL);
+    tgl_do_get_history (TLS, chat_mode_id, 0, 1, offline_mode, print_msg_list_gw, 0);
+    return;
+  }
   if (!strncmp (line, "/history", 8)) {
     int limit = 40;
     sscanf (line, "/history %99d", &limit);
@@ -2838,6 +2863,7 @@ void user_status_upd (struct tgl_state *TLS, struct tgl_user *U) {
   if (!enable_json)
   {
     mpush_color (ev, COLOR_YELLOW);
+    print_date (ev, time(0));
     mprintf (ev, "User ");
     print_user_name(ev, U->id, (void *) U);
     mprintf (ev, " ");
@@ -3774,6 +3800,7 @@ void print_message (struct in_ev *ev, struct tgl_message *M) {
       mprintf (ev, " ");
     }
     print_media (ev, &M->media);
+    mprintf (ev, "{%lld}", M->id);
   }
   mpop_color (ev);
   assert (!color_stack_pos);
